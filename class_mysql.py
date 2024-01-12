@@ -48,3 +48,12 @@ class BDMySQL:
             ex = self.conn.cursor()
             ex.execute(query)
             self.conn.commit()
+
+    def ExecMany(self, query, valores):
+        """
+        Executa mais de uma queryes de insert, update e delete
+        """
+        if query:
+            ex = self.conn.cursor()
+            ex.executemany(query, valores)
+            self.conn.commit()

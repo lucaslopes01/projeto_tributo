@@ -40,26 +40,47 @@ class Tributario:
        
         caminho = os.getenv('CAMINHO_ZIP').replace('\\\\', '\\')
         os.listdir(caminho)
-        verifica = 0
+        lista = []
         linhas = 0
+        inserir = "insert into regime_tributario(ano, cnpj, cnpj_base, cnpj_da_scp, forma_tributacao, quantidade_de_escrituracoes)values(%s, %s, %s, %s, %s, %s)"
         with open(os.path.join(caminho, os.listdir(caminho)[0] ), 'r' ) as file:
             csv_reader = csv.DictReader(file)
             for linha in csv_reader:
                 
-                if verifica <=3:
+                if len(lista)<=500:
+
                     cnpj = linha['cnpj'].replace('.', '').replace('/', '').replace('-', '')
                     cnpj_base = linha['cnpj'].replace('.', '').replace('/', '').replace('-', '')[:8]
+                    cnpj_scp = linha['cnpj_da_scp'].replace('.', '').replace('/', '').replace('-', '')
                     
-                    listando = {'ano':linha['ano'], 'cnpj': cnpj, 'cnpj_base': cnpj_base, 'cnpj_scp': linha['cnpj_da_scp'], 'forma_de_tributacao': linha['forma_de_tributacao'], 'quantidade_de_escrituracoes': linha['quantidade_de_escrituracoes'] }
+                    # listando = {'ano':linha['ano'], 'cnpj': cnpj, 'cnpj_base': cnpj_base, 'cnpj_scp': linha['cnpj_da_scp'], 'forma_de_tributacao': linha['forma_de_tributacao'], 'quantidade_de_escrituracoes': linha['quantidade_de_escrituracoes'] }
                     
-                    inserir = f"""insert into regime_tributario(ano, cnpj, cnpj_base, cnpj_da_scp, forma_tributacao, quantidade_de_escrituracoes)value('{listando["ano"]}', '{cnpj}', '{cnpj_base}', '{listando["cnpj_scp"]}', '{listando["forma_de_tributacao"]}', '{listando["quantidade_de_escrituracoes"]}')"""
-                    self.mysql.processa_comando(inserir)
+                    lista.append((linha['ano'], cnpj, cnpj_base, cnpj_scp ,linha['forma_de_tributacao'],linha['quantidade_de_escrituracoes'])   )
                     linhas += 1
-                    print(f'{linhas} foi adicionada ao banco')
-                    verifica+=1
                 else:
-                    break
-        
+                    # values = '
+                    # for i in lista:
+                    #     values = values + f"""('{i["ano"]}', '{i["cnpj"]}', '{i["cnpj_base"]}', '{i["cnpj_scp"]}', '{i["forma_de_tributacao"]}', '{i["quantidade_de_escrituracoes"]}'),"""
+                    
+                    # dado_final = inserir + values+ ")"
+                
+                    # print (dado_final)
+                    
+                    # inserir = f"""insert into regime_tributario(ano, cnpj, cnpj_base, cnpj_da_scp, forma_tributacao, quantidade_de_escrituracoes)value('{listando["ano"]}', '{cnpj}', '{cnpj_base}', '{listando["cnpj_scp"]}', '{listando["forma_de_tributacao"]}', '{listando["quantidade_de_escrituracoes"]}')"""
+                    self.mysql.ExecMany(inserir, lista)
+                    print(f'{linhas} foi adicionada ao banco')
+                    lista = []
+            if len(lista) != 0:
+                self.mysql.ExecMany(inserir, lista)
+                lista = []
+
+
+
+                
+
+
+                
+    
                 
                 
         os.remove(os.path.join(os.getenv('CAMINHO_ZIP'), os.listdir(caminho)[0]))

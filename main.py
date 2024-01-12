@@ -1,7 +1,7 @@
-import requests
-from zipfile import ZipFile
+
+
 import os
-import csv 
+ 
 from class_mysql import BDMySQL
 from tributario import Tributario
 
@@ -17,6 +17,7 @@ def inicial():
     
     for l in os.listdir(caminho):
         tribut.envia_arquivo_banco(os.path.join(caminho, l), l)
+    del mysql
        
 
 
