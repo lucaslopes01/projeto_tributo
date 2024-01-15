@@ -1,30 +1,31 @@
-
-
 import os
- 
 from class_mysql import BDMySQL
 from tributario import Tributario
 
+
 def inicial():
-    mysql = BDMySQL('b7')
+    mysql = BDMySQL('tributo')
     tribut = Tributario(mysql)
-    caminho =  os.getenv('CAMINHO')
-    for i in os.getenv('LISTA_URLS').split(','):
+    caminho = os.getenv('CAMINHO')
+
+# Certifique-se de que o caminho existe ou crie-o se não existir
+    if not os.path.exists(caminho):
+     os.makedirs(caminho)
+    else:
+       print('não consegui criar a pasta')
+    # for i in os.getenv('LISTA_URLS').split(','):
        
-        file = os.path.join(caminho,i.split('.zip')[0].split('/')[-1].replace('%20', "_")+'.zip')
+    #     file = os.path.join(caminho,i.split('.zip')[0].split('/')[-1].replace('%20', "_")+'.zip')
         
-        tribut.baixa_arquivo(i, file)
+    #     tribut.baixa_arquivo(i, file)
+    tribut.le_arquivo()
+    tribut.trata_arquivo()
+
+
     
-    for l in os.listdir(caminho):
-        tribut.envia_arquivo_banco(os.path.join(caminho, l), l)
+
     del mysql
        
-
-
-    
-
-
-
 if __name__ == '__main__':
     inicial()
 
