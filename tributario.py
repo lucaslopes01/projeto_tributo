@@ -4,6 +4,7 @@ import csv
 import os
 import threading as th
 import multiprocessing as mp
+from concurrent.futures import ThreadPoolExecutor
 
 class Tributario:
     def __init__(self, pymysql) :
@@ -66,34 +67,35 @@ class Tributario:
         self.lista_atual = []
         linhas = 0
         conta = 0
-        for i in os.listdir(caminho):
-            with open(os.path.join(caminho, i), 'r' ) as file:
-                csv_reader = csv.DictReader(file)
-                for linha in csv_reader:
-                    
-                    cnpj = linha['cnpj'].replace('.', '').replace('/', '').replace('-', '')
-                    cnpj_base = linha['cnpj'].replace('.', '').replace('/', '').replace('-', '')[:8]
-                    cnpj_scp = linha['cnpj_da_scp'].replace('.', '').replace('/', '').replace('-', '')
-                    # listando = {'ano':linha['ano'], 'cnpj': cnpj, 'cnpj_base': cnpj_base, 'cnpj_scp': linha['cnpj_da_scp'], 'forma_de_tributacao': linha['forma_de_tributacao'], 'quantidade_de_escrituracoes': linha['quantidade_de_escrituracoes'] }
-                    
-                    self.lista_atual.append((linha['ano'], cnpj, cnpj_base, cnpj_scp ,linha['forma_de_tributacao'],linha['quantidade_de_escrituracoes'])   )
-                    print(f'ja li {linhas}')
-                    linhas += 1
-                    if len(self.lista_atual) == 500:
-                        #self.lista.append(self.lista_atual)
-                        #self.lista_atual = []
-                        v_th = th.Thread(target=self.envia_banco, args=(self.lista_atual, ))
-                        v_th.start()
-                        self.lista_atual = []
-                        conta += 1
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            for i in os.listdir(caminho):
+                with open(os.path.join(caminho, i), 'r' ) as file:
+                    csv_reader = csv.DictReader(file)
+                    for linha in csv_reader:
+                        
+                        cnpj = linha['cnpj'].replace('.', '').replace('/', '').replace('-', '')
+                        cnpj_base = linha['cnpj'].replace('.', '').replace('/', '').replace('-', '')[:8]
+                        cnpj_scp = linha['cnpj_da_scp'].replace('.', '').replace('/', '').replace('-', '')
+                        # listando = {'ano':linha['ano'], 'cnpj': cnpj, 'cnpj_base': cnpj_base, 'cnpj_scp': linha['cnpj_da_scp'], 'forma_de_tributacao': linha['forma_de_tributacao'], 'quantidade_de_escrituracoes': linha['quantidade_de_escrituracoes'] }
+                        
+                        self.lista_atual.append((linha['ano'], cnpj, cnpj_base, cnpj_scp ,linha['forma_de_tributacao'],linha['quantidade_de_escrituracoes'])   )
+                        print(f'ja li {linhas}')
+                        linhas += 1
+                        if len(self.lista_atual) == 500:
+                            #self.lista.append(self.lista_atual)
+                            #self.lista_atual = []
+                            executor.submit(self.envia_banco, self.lista_atual[:])
 
-                    # if conta == 2:
-                    #     for x in lst_process:
-                    #         if lst_process[x]:
-                    #             lst_process[x].start()
-                    
-        if self.lista_atual:
-            self.lista.append(self.lista_atual)
+                            self.lista_atual = []
+                            conta += 1
+
+                        # if conta == 2:
+                        #     for x in lst_process:
+                        #         if lst_process[x]:
+                        #             lst_process[x].start()
+                        
+            if self.lista_atual:
+                executor.submit(self.envia_banco, self.lista_atual[:])
 
                         
     

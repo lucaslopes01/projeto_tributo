@@ -4,7 +4,7 @@ from tributario import Tributario
 
 
 def inicial():
-    mysql = BDMySQL('tributo')
+    mysql = BDMySQL('b7')
     tribut = Tributario(mysql)
     caminho = os.getenv('CAMINHO')
 
